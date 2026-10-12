@@ -7,6 +7,7 @@ Team Members:
 - Dominique
 - Bryan
 - Thiri
+- Bingxuan
 - Xi Ze
 
 An online platform matching renovation customers to interior designers, built with Python + Flask using the Boundary-Control-Entity (B-C-E) design.
