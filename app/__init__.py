@@ -1,6 +1,13 @@
+import os
+
 from flask import Flask
 
 from app.entity.db import db
+
+# Development-only key so the app works out of the box for the whole group.
+# For a real deployment, set the ENCRYPTION_KEY environment variable to a key
+# made with:  python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+DEV_ENCRYPTION_KEY = "1dCtVD-SSy_dupVpi3OPSN3pxR6kAqcWwtK4vMg-NPA="
 
 
 def create_app(test_config=None):
@@ -9,6 +16,7 @@ def create_app(test_config=None):
     app.config.update(
         SECRET_KEY="dev-change-me",
         SQLALCHEMY_DATABASE_URI="sqlite:///eeveelution.db",
+        ENCRYPTION_KEY=os.environ.get("ENCRYPTION_KEY", DEV_ENCRYPTION_KEY),
     )
     if test_config:
         app.config.update(test_config)

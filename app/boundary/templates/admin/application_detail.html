@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<p><a href="{{ url_for('admin.applications', status=application.status) }}">&larr; All applications</a></p>
+<h1>{{ application.company_name }}</h1>
+<p>Status: <mark>{{ application.status | capitalize }}</mark></p>
+
+<article>
+  <table>
+    <tr><th scope="row">Applicant</th><td>{{ application.name }}</td></tr>
+    <tr><th scope="row">Email</th><td>{{ application.email }}</td></tr>
+    <tr><th scope="row">Phone</th><td>{{ application.phone }}</td></tr>
+    <tr><th scope="row">UEN</th><td>{{ application.uen }}</td></tr>
+    <tr><th scope="row">Experience</th><td>{{ application.experience_years }} years</td></tr>
+    <tr><th scope="row">Portfolio</th><td>
+      {% if application.portfolio_url %}
+      <a href="{{ application.portfolio_url }}" target="_blank" rel="noopener">{{ application.portfolio_url }}</a>
+      {% else %}-{% endif %}</td></tr>
+    <tr><th scope="row">Submitted</th><td>{{ application.submitted_at.strftime('%d %b %Y, %H:%M') }}</td></tr>
+    {% if application.reviewed_at %}
+    <tr><th scope="row">Reviewed</th><td>{{ application.reviewed_at.strftime('%d %b %Y, %H:%M') }}</td></tr>
+    {% endif %}
+    {% if application.rejection_reason %}
+    <tr><th scope="row">Reason</th><td>{{ application.rejection_reason }}</td></tr>
+    {% endif %}
+  </table>
+  {% if application.description %}
+  <h3>About the company</h3>
+  <p>{{ application.description }}</p>
+  {% endif %}
+</article>
+
+{% if application.status == 'pending' %}
+<div class="grid">
+  <form method="post" action="{{ url_for('admin.approve_application', application_id=application.id) }}">
+    <button type="submit">Approve and create account</button>
+  </form>
+  <form method="post" action="{{ url_for('admin.reject_application', application_id=application.id) }}">
+    <label for="reason">Reason for rejecting (optional)</label>
+    <textarea id="reason" name="reason" rows="2"></textarea>
+    <button type="submit" class="secondary">Reject</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

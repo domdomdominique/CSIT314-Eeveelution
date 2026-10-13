@@ -1,5 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Admin dashboard</h1>
-<p>Add this actor's pages here.</p>
+<article>
+  <header><strong>Designer applications</strong></header>
+  {% if pending %}
+  <p>{{ pending }} application{{ 's' if pending != 1 }} waiting for review.</p>
+  {% else %}
+  <p>No applications waiting for review.</p>
+  {% endif %}
+  <a href="{{ url_for('admin.applications') }}" role="button">Review applications</a>
+</article>
 {% endblock %}
