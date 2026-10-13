@@ -1,6 +1,7 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.entity.db import db
+from app.entity.encryption import EncryptedString
 
 
 class UserAccount(db.Model):
@@ -9,7 +10,9 @@ class UserAccount(db.Model):
     ROLES = ("admin", "designer", "customer", "platform")
 
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), default="")
     email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(EncryptedString, default="")  # encrypted in the database
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(20), nullable=False)
     is_suspended = db.Column(db.Boolean, default=False)
@@ -18,14 +21,18 @@ class UserAccount(db.Model):
         self.password_hash = generate_password_hash(password)
 
     @classmethod
-    def create(cls, email, password, role):
+    def create(cls, email, password, role, name="", phone=""):
         if role not in cls.ROLES:
             raise ValueError(f"Unknown role: {role}")
-        account = cls(email=email, role=role)
+        account = cls(email=email, role=role, name=name, phone=phone)
         account.set_password(password)
         db.session.add(account)
         db.session.commit()
         return account
+
+    @classmethod
+    def email_exists(cls, email):
+        return cls.query.filter_by(email=email).first() is not None
 
     @classmethod
     def login(cls, email, password):

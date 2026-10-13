@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Create an account</h1>
+
+<div role="group">
+  <a href="{{ url_for('auth.register') }}" role="button"
+     {% if account_type != 'customer' %}class="outline"{% endif %}>I'm a homeowner</a>
+  <a href="{{ url_for('auth.apply_designer') }}" role="button"
+     {% if account_type != 'designer' %}class="outline"{% endif %}>I'm an interior designer</a>
+</div>
+
+{% if account_type == 'designer' %}
+<p>Designer accounts are checked by our admin team. Submit your details below,
+  and you can log in once your application is approved.</p>
+<form method="post" action="{{ url_for('auth.apply_designer') }}">
+{% else %}
+<p>Browse designer portfolios and save the projects you like. Your account is ready straight away.</p>
+<form method="post" action="{{ url_for('auth.register') }}">
+{% endif %}
+
+  <fieldset>
+    <legend>Your details</legend>
+    <label for="name">Full name</label>
+    <input id="name" name="name" value="{{ form.get('name', '') }}" required>
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ form.get('email', '') }}" required>
+
+    <label for="phone">Phone number</label>
+    <input id="phone" name="phone" type="tel" placeholder="9123 4567"
+           value="{{ form.get('phone', '') }}" required>
+
+    <div class="grid">
+      <div>
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" minlength="8" required>
+        <small>At least 8 characters.</small>
+      </div>
+      <div>
+        <label for="confirm_password">Confirm password</label>
+        <input id="confirm_password" name="confirm_password" type="password" minlength="8" required>
+      </div>
+    </div>
+  </fieldset>
+
+  {% if account_type == 'designer' %}
+  <fieldset>
+    <legend>Company details</legend>
+    <label for="company_name">Company name</label>
+    <input id="company_name" name="company_name" value="{{ form.get('company_name', '') }}" required>
+
+    <div class="grid">
+      <div>
+        <label for="uen">UEN</label>
+        <input id="uen" name="uen" placeholder="201912345K" value="{{ form.get('uen', '') }}" required>
+      </div>
+      <div>
+        <label for="experience_years">Years of experience</label>
+        <input id="experience_years" name="experience_years" type="number" min="0"
+               value="{{ form.get('experience_years', '0') }}">
+      </div>
+    </div>
+
+    <label for="portfolio_url">Portfolio or website (optional)</label>
+    <input id="portfolio_url" name="portfolio_url" type="url" placeholder="https://"
+           value="{{ form.get('portfolio_url', '') }}">
+
+    <label for="description">About your company (optional)</label>
+    <textarea id="description" name="description" rows="4">{{ form.get('description', '') }}</textarea>
+  </fieldset>
+  <button type="submit">Submit application</button>
+  {% else %}
+  <button type="submit">Create account</button>
+  {% endif %}
+</form>
+
+<p>Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+{% endblock %}
