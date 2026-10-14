@@ -1,0 +1,23 @@
+{# Dark left-hand panel of the log in / sign up card. #}
+{% macro brand_panel(title, text, points) %}
+  {% set img = 'img/ui/' %}
+  <div class="auth-brand">
+    <div class="photo auth-photo">
+      <img src="{{ url_for('static', filename=img ~ 'idp-image.svg') }}" width="42" height="42" alt="">
+    </div>
+    <h2>{{ title }}</h2>
+    <p>{{ text }}</p>
+    <ul class="auth-points">
+      {% for point in points %}
+        <li><img src="{{ url_for('static', filename=img ~ 'auth-tick.svg') }}" width="20" height="20" alt="">{{ point }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endmacro %}
+
+{# Form errors flashed by the boundary, shown at the top of the form. #}
+{% macro errors() %}
+  {% for message in get_flashed_messages(category_filter=['error']) %}
+    <p class="form-error" role="alert">{{ message }}</p>
+  {% endfor %}
+{% endmacro %}

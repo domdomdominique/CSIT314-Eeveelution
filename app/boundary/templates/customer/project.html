@@ -1,0 +1,188 @@
+{% extends "customer/layout.html" %}
+{% import "customer/_cards.html" as cards with context %}
+{% set nav = 'browse' %}
+{% block title %}{{ idp.title }} — Nestfolio{% endblock %}
+{% block content %}
+{% set img = 'img/ui/' %}
+{% set here = request.full_path.rstrip('?') %}
+{% set photo_colours = ['#eed6be', '#d9cec2', '#e6ddcf', '#f0dccb', '#e2d9cf'] %}
+  <div class="wrap project-page">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ url_for('auth.index') }}">Home</a><span>/</span>
+      <a href="{{ url_for('customer.home', category=idp.category) }}">{{ idp.category }}</a><span>/</span>
+      <span aria-current="page">{{ idp.title }}</span>
+    </nav>
+
+    <div class="project-title-row">
+      <div class="project-title">
+        <div class="project-meta">
+          <span class="idp-category">{{ idp.category|upper }}</span>
+          <span class="status-pill {{ 'status-current' if idp.is_current else 'status-past' }}">{{ 'Current project' if idp.is_current else 'Past project' }}</span>
+        </div>
+        <h1 class="display-title">{{ idp.title }}</h1>
+        <div class="project-stats">
+          <span><img src="{{ url_for('static', filename=img ~ 'detail-views.svg') }}" width="16" height="16" alt="">{{ '{:,}'.format(idp.view_count or 0) }} views</span>
+          <span><img src="{{ url_for('static', filename=img ~ 'detail-saves.svg') }}" width="16" height="16" alt="">{{ '{:,}'.format(idp.shortlist_count or 0) }} saves</span>
+          <span>by <a href="{{ url_for('customer.designer_profile', designer_id=designer.id) }}">{{ designer.display_name }}</a></span>
+        </div>
+      </div>
+      <div class="project-actions">
+        <button class="btn btn-share" type="button" id="share-btn">
+          <img src="{{ url_for('static', filename=img ~ 'share.svg') }}" width="18" height="18" alt="">
+          <span>Share</span>
+        </button>
+        {# C-07 save / C-10 remove #}
+        {% if session.role == 'customer' %}
+          <form method="post" action="{{ url_for('customer.remove_favourite' if saved else 'customer.save_favourite', idp_id=idp.id) }}">
+            <input type="hidden" name="next" value="{{ here }}">
+            <button class="btn btn-save{{ ' saved' if saved }}" type="submit" aria-pressed="{{ 'true' if saved else 'false' }}">
+              <img src="{{ url_for('static', filename=img ~ ('idp-heart-saved.svg' if saved else 'idp-heart.svg')) }}" width="18" height="18" alt="">
+              {{ 'Saved to favourites' if saved else 'Save to favourites' }}
+            </button>
+          </form>
+        {% elif not session.user_id %}
+          <a class="btn btn-save" href="{{ url_for('auth.login', next=here) }}">
+            <img src="{{ url_for('static', filename=img ~ 'idp-heart.svg') }}" width="18" height="18" alt="">Save to favourites
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Photos are added by designers later (ID-19); until then show placeholders in the gallery layout #}
+    <div class="gallery">
+      <div class="photo gallery-main" style="background: {{ photo_colours[idp.id % 5] }}">
+        <img src="{{ url_for('static', filename=img ~ 'cover-image.svg') }}" width="64" height="64" alt="">
+        <span class="gallery-count"><img src="{{ url_for('static', filename=img ~ 'photos.svg') }}" width="16" height="16" alt="">No photos yet</span>
+      </div>
+      <div class="gallery-thumbs">
+        {% for i in range(1, 5) %}
+          <div class="photo" style="background: {{ photo_colours[(idp.id + i) % 5] }}">
+            <img src="{{ url_for('static', filename=img ~ 'idp-image.svg') }}" width="42" height="42" alt="">
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="project-body">
+      <div class="project-left">
+        <section class="profile-about">
+          <h2>About this project</h2>
+          <p>{{ idp.description or 'The designer has not added a description yet.' }}</p>
+        </section>
+
+        <section class="company-details">
+          <h2>Project details</h2>
+          <dl>
+            <div><dt>Category</dt><dd>{{ idp.category }}</dd></div>
+            <div><dt>Status</dt><dd>{{ 'Current project' if idp.is_current else 'Past project' }}</dd></div>
+            <div><dt>Designer</dt><dd><a href="{{ url_for('customer.designer_profile', designer_id=designer.id) }}">{{ designer.display_name }}</a></dd></div>
+            {% if idp.created_at %}<div><dt>Posted</dt><dd>{{ idp.created_at.strftime('%B %Y') }}</dd></div>{% endif %}
+          </dl>
+        </section>
+
+        {# C-15 report #}
+        {% if session.role == 'customer' %}
+          <button class="report-link" type="button" data-open="report-dialog">
+            <img src="{{ url_for('static', filename=img ~ 'report-flag.svg') }}" width="16" height="16" alt="">Report this project
+          </button>
+        {% elif not session.user_id %}
+          <a class="report-link" href="{{ url_for('auth.login', next=here) }}">
+            <img src="{{ url_for('static', filename=img ~ 'report-flag.svg') }}" width="16" height="16" alt="">Report this project
+          </a>
+        {% endif %}
+      </div>
+
+      <aside class="project-right">
+        <p class="side-label">About the designer</p>
+        {{ cards.designer_card(designer, project_count) }}
+
+        {# C-16 contact designer #}
+        <section class="side-card">
+          <h2 class="side-card-title">
+            <img src="{{ url_for('static', filename=img ~ 'chat.svg') }}" width="20" height="20" alt="">
+            Like this design?
+          </h2>
+          <p class="designer-about">Send {{ designer.display_name }} a message to start a renovation discussion.</p>
+          {% if session.role == 'customer' %}
+            <form class="enquiry-form" method="post" action="{{ url_for('customer.send_enquiry', designer_id=designer.id) }}">
+              <input type="hidden" name="idp_id" value="{{ idp.id }}">
+              <input type="hidden" name="next" value="{{ here }}">
+              <input name="name" placeholder="Your name" aria-label="Your name" required value="{{ session.name or '' }}">
+              <input name="contact" placeholder="Email or phone" aria-label="Email or phone" required>
+              <textarea name="message" placeholder="Tell us about your home and budget…" aria-label="Message" rows="4" maxlength="2000" required></textarea>
+              <button class="btn btn-primary" type="submit">Send enquiry</button>
+            </form>
+          {% elif not session.user_id %}
+            <a class="btn btn-primary" href="{{ url_for('auth.login', next=here) }}">Log in to send an enquiry</a>
+          {% endif %}
+        </section>
+
+        <a class="see-all" href="{{ url_for('customer.designer_profile', designer_id=designer.id) }}#projects">
+          View all {{ project_count }} project{{ '' if project_count == 1 else 's' }} by {{ designer.display_name }} →
+        </a>
+      </aside>
+    </div>
+  </div>
+
+  {% if more %}
+    <section class="section section-grey">
+      <div class="wrap">
+        <div class="section-header">
+          <div class="titles">
+            <span class="eyebrow">MORE FROM {{ designer.display_name|upper }}</span>
+            <h2>You might also like</h2>
+          </div>
+          <a class="see-all" href="{{ url_for('customer.designer_profile', designer_id=designer.id) }}">View designer profile →</a>
+        </div>
+        <div class="project-row">
+          {% for p in more %}{{ cards.idp_card(p, saved_ids) }}{% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if session.role == 'customer' %}
+    <dialog class="modal" id="report-dialog" aria-labelledby="report-title">
+      <div class="modal-header">
+        <span class="modal-icon"><img src="{{ url_for('static', filename=img ~ 'modal-flag.svg') }}" width="20" height="20" alt=""></span>
+        <div class="modal-titles">
+          <h2 id="report-title">Report this project</h2>
+          <p>Tell us what is wrong. A User Admin will review your report.</p>
+        </div>
+        <form method="dialog"><button class="modal-close" aria-label="Close"><img src="{{ url_for('static', filename=img ~ 'modal-close.svg') }}" width="20" height="20" alt=""></button></form>
+      </div>
+      <form class="modal-body" method="post" action="{{ url_for('customer.report_project', idp_id=idp.id) }}">
+        <fieldset class="reasons">
+          <legend class="visually-hidden">Reason</legend>
+          {% for reason in reasons %}
+            <label class="reason">
+              <input type="radio" name="reason" value="{{ reason }}" required {% if loop.first %}checked{% endif %}>
+              <span>{{ reason }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <label class="field">
+          <span>More details (optional)</span>
+          <textarea name="details" rows="3" maxlength="1000" placeholder="e.g. This post is selling packages, not showing a real project."></textarea>
+        </label>
+        <div class="modal-actions">
+          <button class="btn btn-outline" type="submit" formmethod="dialog" formnovalidate>Cancel</button>
+          <button class="btn btn-primary" type="submit">Submit report</button>
+        </div>
+      </form>
+    </dialog>
+  {% endif %}
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // Share: copy this project's link
+    document.getElementById('share-btn').addEventListener('click', function () {
+      var label = this.querySelector('span');
+      navigator.clipboard.writeText(location.href.split('#')[0]).then(function () {
+        label.textContent = 'Link copied';
+        setTimeout(function () { label.textContent = 'Share'; }, 2000);
+      });
+    });
+  </script>
+{% endblock %}

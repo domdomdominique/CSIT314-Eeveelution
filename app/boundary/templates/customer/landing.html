@@ -4,12 +4,9 @@
 {% block content %}
 {% set img = 'img/ui/' %}
 {% set search_url = url_for('customer.home') %}
-{% set category_colours = ['#efe6dc', '#e4dbd2', '#f4f0d6', '#e9e0d6', '#ddd3c8', '#f1ebdf'] %}
+{% set category_colours = ['#f2ddc8', '#ddd3c9', '#eadfd3', '#d6cbbf', '#f0e4d2', '#e2d9cf'] %}
 
     <section class="hero">
-      <img class="hero-decor hero-decor-1" src="{{ url_for('static', filename=img ~ 'decor-1.svg') }}" width="360" height="360" alt="">
-      <img class="hero-decor hero-decor-2" src="{{ url_for('static', filename=img ~ 'decor-2.svg') }}" width="260" height="260" alt="">
-      <img class="hero-decor hero-decor-3" src="{{ url_for('static', filename=img ~ 'decor-3.svg') }}" width="90" height="90" alt="">
       <div class="wrap">
         <h1>Find the right interior designer<br>for your home</h1>
         <p class="hero-sub">Browse real renovation projects from verified designers. Filter by style, save the ones you love,<br>and connect with the team behind them.</p>
@@ -38,6 +35,10 @@
         </div>
 
         <p class="hero-stats">{{ '{:,}'.format(customer_count) }} homeowners have joined · {{ '{:,}'.format(designer_count) }} verified designers</p>
+        {# Placeholder until the team picks a real hero photo #}
+        <div class="photo hero-image">
+          <img src="{{ url_for('static', filename=img ~ 'hero-image.svg') }}" width="56" height="56" alt="">
+        </div>
       </div>
     </section>
 
@@ -52,7 +53,7 @@
         </div>
         <div class="category-row">
           {% for name, count in categories %}
-            <a class="category-card" href="{{ url_for('customer.home', q=name) }}">
+            <a class="category-card" href="{{ url_for('customer.home', category=name) }}">
               <div class="photo" style="background: {{ category_colours[loop.index0 % category_colours|length] }}">
                 <img src="{{ url_for('static', filename=img ~ 'category-image.svg') }}" width="29" height="29" alt="">
               </div>

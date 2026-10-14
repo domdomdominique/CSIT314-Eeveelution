@@ -1,6 +1,6 @@
 {# Reusable cards for the customer pages. #}
 {% set img = 'img/ui/' %}
-{% set photo_colours = ['#efe6dc', '#e4dbd2', '#f4f0d6', '#e9e0d6', '#ddd3c8', '#f1ebdf', '#e8e1cf'] %}
+{% set photo_colours = ['#eed6be', '#d9cec2', '#e6ddcf', '#f0dccb', '#e2d9cf', '#d6cbbf', '#f3e2cc'] %}
 
 {# Heart button: saves/removes for customers, sends visitors to log in, hidden for other roles. #}
 {% macro save_button(p, saved) %}
@@ -34,7 +34,8 @@
     </div>
     <div class="idp-body">
       <span class="idp-category">{{ p.category|upper }}</span>
-      <h3 class="idp-title">{{ p.title }}</h3>
+      {# The title link covers the whole card (see .card-link in site.css) #}
+      <h3 class="idp-title"><a class="card-link" href="{{ url_for('customer.project', idp_id=p.id) }}">{{ p.title }}</a></h3>
       <a class="card-meta" href="{{ url_for('customer.designer_profile', designer_id=p.designer_id) }}">by {{ p.designer.display_name }}</a>
       <div class="idp-stats">
         <span><img src="{{ url_for('static', filename=img ~ 'idp-views.svg') }}" width="14" height="14" alt="">{{ '{:,}'.format(p.view_count or 0) }} views</span>

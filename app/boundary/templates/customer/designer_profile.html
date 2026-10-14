@@ -121,12 +121,17 @@
           Like this design?
         </h2>
         <p class="designer-about">Send {{ designer.display_name }} a message to start a renovation discussion.</p>
-        <form class="enquiry-form" id="enquiry-form" data-email="{{ designer.email }}" data-company="{{ designer.display_name }}">
-          <input name="name" placeholder="Your name" aria-label="Your name" required value="{{ session.name or '' }}">
-          <input name="contact" placeholder="Email or phone" aria-label="Email or phone" required>
-          <textarea name="message" placeholder="Tell us about your home and budget…" aria-label="Message" rows="4" required></textarea>
-          <button class="btn btn-primary" type="submit">Send enquiry</button>
-        </form>
+        {% if session.role == 'customer' %}
+          <form class="enquiry-form" method="post" action="{{ url_for('customer.send_enquiry', designer_id=designer.id) }}">
+            <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}#contact">
+            <input name="name" placeholder="Your name" aria-label="Your name" required value="{{ session.name or '' }}">
+            <input name="contact" placeholder="Email or phone" aria-label="Email or phone" required>
+            <textarea name="message" placeholder="Tell us about your home and budget…" aria-label="Message" rows="4" maxlength="2000" required></textarea>
+            <button class="btn btn-primary" type="submit">Send enquiry</button>
+          </form>
+        {% elif not session.user_id %}
+          <a class="btn btn-primary" href="{{ url_for('auth.login', next=request.full_path.rstrip('?') ~ '#contact') }}">Log in to send an enquiry</a>
+        {% endif %}
       </section>
     </aside>
   </div>
@@ -139,15 +144,6 @@
         label.textContent = 'Link copied';
         setTimeout(function () { label.textContent = 'Share'; }, 2000);
       });
-    });
-    // Enquiry: open the customer's email app with the message filled in
-    document.getElementById('enquiry-form').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var f = this;
-      var body = f.message.value + '\n\n— ' + f.name.value + ' (' + f.contact.value + ')';
-      location.href = 'mailto:' + f.dataset.email +
-        '?subject=' + encodeURIComponent('Renovation enquiry for ' + f.dataset.company + ' via Nestfolio') +
-        '&body=' + encodeURIComponent(body);
     });
   </script>
 {% endblock %}

@@ -20,6 +20,31 @@ class UserAccount(db.Model):
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password or "")
+
+    def change_password(self, new_password):
+        self.set_password(new_password)
+        db.session.commit()
+
+    def update_details(self, name, email, phone):
+        self.name, self.email, self.phone = name, email, phone
+        db.session.commit()
+
+    # --- Customer profile form ---------------------------------------------
+    # Names are stored as one string; the form shows the last word as the
+    # last name ("Wei Ming Tan" -> "Wei Ming" + "Tan").
+
+    @property
+    def first_name(self):
+        parts = (self.name or "").rsplit(" ", 1)
+        return parts[0] if len(parts) == 2 else (self.name or "")
+
+    @property
+    def last_name(self):
+        parts = (self.name or "").rsplit(" ", 1)
+        return parts[1] if len(parts) == 2 else ""
+
     @classmethod
     def create(cls, email, password, role, name="", phone=""):
         if role not in cls.ROLES:
