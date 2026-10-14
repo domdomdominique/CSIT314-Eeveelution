@@ -6,7 +6,7 @@ from app.entity.user_account import UserAccount
 
 
 class ViewDesignerProfileController:
-    """Control: handles the Customer 'View designer profile' use case (C-10)."""
+    """Control: handles the Customer 'View ID Profile' use case (C-13)."""
 
     def view(self, designer_id, status=None, customer_id=None):
         designer = UserAccount.get(designer_id)

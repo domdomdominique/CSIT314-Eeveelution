@@ -1,12 +1,52 @@
-{% extends "base.html" %}
+{% extends "customer/layout.html" %}
+{% import "auth/_auth_card.html" as auth with context %}
+{% set inline_errors = true %}
+{% block title %}Log in — Nestfolio{% endblock %}
 {% block content %}
-<h1>Log in</h1>
-<form method="post">
-  <label for="email">Email</label>
-  <input id="email" name="email" type="email" required>
-  <label for="password">Password</label>
-  <input id="password" name="password" type="password" required>
-  <button type="submit">Log in</button>
-</form>
-<p>New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+{% set img = 'img/ui/' %}
+  <div class="auth-page">
+    <div class="wrap">
+      <div class="auth-card">
+        {{ auth.brand_panel('Find a designer you can trust',
+                            'Browse real projects, save the ones you love and reach out when you are ready.',
+                            ['Every designer is verified', 'Real projects to explore', 'Free for homeowners']) }}
+
+        <form class="auth-form" method="post">
+          <h1>Log in</h1>
+          <p class="auth-lead">Welcome back. Log in to see your saved projects and favourite designers.</p>
+          {{ auth.errors() }}
+
+          <label class="field">
+            <span>Log in as</span>
+            <span class="select">
+              <select name="role">
+                {% for key, label in roles.items() %}
+                  <option value="{{ key }}" {% if form.get('role', 'customer') == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+              <img src="{{ url_for('static', filename=img ~ 'chevron.svg') }}" width="18" height="18" alt="">
+            </span>
+          </label>
+          <label class="field">
+            <span>Email address</span>
+            <input name="email" type="email" value="{{ form.get('email', '') }}" placeholder="you@example.com" autocomplete="email" required>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+
+          <div class="auth-options">
+            <label class="checkbox">
+              <input type="checkbox" name="remember" value="1" {% if form.get('remember') %}checked{% endif %}>
+              <span>Remember me</span>
+            </label>
+          </div>
+
+          <button class="btn btn-primary btn-block" type="submit">Log in</button>
+          <p class="auth-switch">New to Nestfolio? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+        </form>
+      </div>
+    </div>
+  </div>
 {% endblock %}

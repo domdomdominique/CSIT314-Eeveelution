@@ -23,7 +23,7 @@ def login(client, email="cus@test.com"):
     client.post("/login", data={"email": email, "password": "password123"})
 
 
-# --- C-11 Save -----------------------------------------------------------
+# --- C-07 Save -----------------------------------------------------------
 
 def test_save_adds_favourite_and_counts_it_once(app):
     customer, loft, _ = setup_data()
@@ -40,7 +40,7 @@ def test_save_unknown_project_raises(app):
         SaveFavouriteController().save(customer.id, 999)
 
 
-# --- C-12 View / C-13 Search ---------------------------------------------
+# --- C-08 View / C-09 Search ---------------------------------------------
 
 def test_view_sorts_favourites(app):
     customer, loft, kitchen = setup_data()
@@ -61,7 +61,7 @@ def test_search_only_looks_in_own_favourites(app):
     assert search.search(customer.id, "kitchen") == []
 
 
-# --- C-14 Remove ---------------------------------------------------------
+# --- C-10 Remove ---------------------------------------------------------
 
 def test_remove_deletes_favourite_and_lowers_count(app):
     customer, loft, _ = setup_data()

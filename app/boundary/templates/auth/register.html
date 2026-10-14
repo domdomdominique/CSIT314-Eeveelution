@@ -1,78 +1,99 @@
-{% extends "base.html" %}
+{% extends "customer/layout.html" %}
+{% import "auth/_auth_card.html" as auth with context %}
+{% set inline_errors = true %}
+{% set designer = account_type == 'designer' %}
+{% block title %}{{ 'Register your company' if designer else 'Create your account' }} — Nestfolio{% endblock %}
 {% block content %}
-<h1>Create an account</h1>
+  <div class="auth-page">
+    <div class="wrap">
+      <div class="auth-card">
+        {% if designer %}
+          {{ auth.brand_panel('Showcase your best work',
+                              'Register your company, post your projects and see how homeowners respond to them.',
+                              ['Reviewed by our admin team', 'Post current and past projects', 'See views and saves for each project']) }}
+        {% else %}
+          {{ auth.brand_panel('Start planning your dream home',
+                              'Create a free account to shortlist projects and keep track of designers you like.',
+                              ['Save projects to your favourites', 'Search your saved list any time', 'Message designers directly']) }}
+        {% endif %}
 
-<div role="group">
-  <a href="{{ url_for('auth.register') }}" role="button"
-     {% if account_type != 'customer' %}class="outline"{% endif %}>I'm a homeowner</a>
-  <a href="{{ url_for('auth.apply_designer') }}" role="button"
-     {% if account_type != 'designer' %}class="outline"{% endif %}>I'm an interior designer</a>
-</div>
+        <form class="auth-form" method="post" action="{{ url_for('auth.apply_designer' if designer else 'auth.register') }}">
+          {% if designer %}
+            <h1>Register your company</h1>
+            <p class="auth-lead">Designer accounts are checked by our admin team. You can log in once your application is approved.</p>
+          {% else %}
+            <h1>Create your account</h1>
+            <p class="auth-lead">Sign up as a customer to save favourites and contact designers.</p>
+          {% endif %}
+          {{ auth.errors() }}
 
-{% if account_type == 'designer' %}
-<p>Designer accounts are checked by our admin team. Submit your details below,
-  and you can log in once your application is approved.</p>
-<form method="post" action="{{ url_for('auth.apply_designer') }}">
-{% else %}
-<p>Browse designer portfolios and save the projects you like. Your account is ready straight away.</p>
-<form method="post" action="{{ url_for('auth.register') }}">
-{% endif %}
+          <div class="field-row">
+            <label class="field">
+              <span>First name</span>
+              <input name="first_name" value="{{ form.get('first_name') or form.get('name', '') }}" autocomplete="given-name" required>
+            </label>
+            <label class="field">
+              <span>Last name</span>
+              <input name="last_name" value="{{ form.get('last_name', '') }}" autocomplete="family-name">
+            </label>
+          </div>
+          <label class="field">
+            <span>Email address</span>
+            <input name="email" type="email" value="{{ form.get('email', '') }}" placeholder="you@example.com" autocomplete="email" required>
+          </label>
+          <label class="field">
+            <span>Phone number</span>
+            <input name="phone" type="tel" value="{{ form.get('phone', '') }}" placeholder="+65 9123 4567" autocomplete="tel" required>
+          </label>
+          <label class="field">
+            <span>Password</span>
+            <input name="password" type="password" minlength="8" placeholder="At least 8 characters" autocomplete="new-password" required>
+          </label>
+          <label class="field">
+            <span>Confirm password</span>
+            <input name="confirm_password" type="password" minlength="8" placeholder="Re-enter your password" autocomplete="new-password" required>
+          </label>
 
-  <fieldset>
-    <legend>Your details</legend>
-    <label for="name">Full name</label>
-    <input id="name" name="name" value="{{ form.get('name', '') }}" required>
+          {% if designer %}
+            <p class="form-section">Company details</p>
+            <label class="field">
+              <span>Company name</span>
+              <input name="company_name" value="{{ form.get('company_name', '') }}" autocomplete="organization" required>
+            </label>
+            <div class="field-row">
+              <label class="field">
+                <span>UEN</span>
+                <input name="uen" value="{{ form.get('uen', '') }}" placeholder="201912345K" required>
+              </label>
+              <label class="field">
+                <span>Years of experience</span>
+                <input name="experience_years" type="number" min="0" value="{{ form.get('experience_years', '0') }}">
+              </label>
+            </div>
+            <label class="field">
+              <span>Portfolio or website (optional)</span>
+              <input name="portfolio_url" type="url" value="{{ form.get('portfolio_url', '') }}" placeholder="https://">
+            </label>
+            <label class="field">
+              <span>About your company (optional)</span>
+              <textarea name="description" rows="4">{{ form.get('description', '') }}</textarea>
+            </label>
+          {% endif %}
 
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" value="{{ form.get('email', '') }}" required>
+          <label class="checkbox">
+            <input type="checkbox" name="terms" value="1" required {% if form.get('terms') %}checked{% endif %}>
+            <span>I agree to the Terms of Use and Privacy Policy</span>
+          </label>
 
-    <label for="phone">Phone number</label>
-    <input id="phone" name="phone" type="tel" placeholder="9123 4567"
-           value="{{ form.get('phone', '') }}" required>
-
-    <div class="grid">
-      <div>
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" minlength="8" required>
-        <small>At least 8 characters.</small>
-      </div>
-      <div>
-        <label for="confirm_password">Confirm password</label>
-        <input id="confirm_password" name="confirm_password" type="password" minlength="8" required>
+          <button class="btn btn-primary btn-block" type="submit">{{ 'Submit application' if designer else 'Create account' }}</button>
+          <p class="auth-switch">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+          {% if designer %}
+            <p class="auth-callout">Looking for a designer instead? <a href="{{ url_for('auth.register') }}">Create a customer account</a></p>
+          {% else %}
+            <p class="auth-callout">Are you an interior designer? <a href="{{ url_for('auth.apply_designer') }}">Register your company</a></p>
+          {% endif %}
+        </form>
       </div>
     </div>
-  </fieldset>
-
-  {% if account_type == 'designer' %}
-  <fieldset>
-    <legend>Company details</legend>
-    <label for="company_name">Company name</label>
-    <input id="company_name" name="company_name" value="{{ form.get('company_name', '') }}" required>
-
-    <div class="grid">
-      <div>
-        <label for="uen">UEN</label>
-        <input id="uen" name="uen" placeholder="201912345K" value="{{ form.get('uen', '') }}" required>
-      </div>
-      <div>
-        <label for="experience_years">Years of experience</label>
-        <input id="experience_years" name="experience_years" type="number" min="0"
-               value="{{ form.get('experience_years', '0') }}">
-      </div>
-    </div>
-
-    <label for="portfolio_url">Portfolio or website (optional)</label>
-    <input id="portfolio_url" name="portfolio_url" type="url" placeholder="https://"
-           value="{{ form.get('portfolio_url', '') }}">
-
-    <label for="description">About your company (optional)</label>
-    <textarea id="description" name="description" rows="4">{{ form.get('description', '') }}</textarea>
-  </fieldset>
-  <button type="submit">Submit application</button>
-  {% else %}
-  <button type="submit">Create account</button>
-  {% endif %}
-</form>
-
-<p>Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+  </div>
 {% endblock %}

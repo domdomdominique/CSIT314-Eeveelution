@@ -3,7 +3,7 @@ from app.entity.idp import IDP
 
 
 class SaveFavouriteController:
-    """Control: handles the Customer 'Save IDP to favourites' use case (C-11)."""
+    """Control: handles the Customer 'Favourite IDPs' use case (C-07)."""
 
     def save(self, customer_id, idp_id):
         idp = IDP.get(idp_id)

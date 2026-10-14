@@ -6,7 +6,7 @@
   <title>{% block title %}Nestfolio{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Roboto:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/ui/nestfolio-logo.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
 </head>
@@ -18,8 +18,14 @@
     <div class="wrap">
       <a href="{{ url_for('auth.apply_designer') }}">For Interior Designers</a>
       {% if session.user_id %}
-        {% if session.name %}<span>Hi, {{ session.name.split()[0] }}</span>{% endif %}
-        <a href="{{ url_for('auth.logout') }}">Log out</a>
+        {% if session.name %}
+          {% if session.role == 'customer' %}
+            <a href="{{ url_for('customer.profile') }}">Hi, {{ session.name.split()[0] }}</a>
+          {% else %}
+            <span>Hi, {{ session.name.split()[0] }}</span>
+          {% endif %}
+        {% endif %}
+        <a href="{{ url_for('auth.logout') }}" data-logout>Log out</a>
       {% else %}
         <a href="{{ url_for('auth.login') }}">Log in</a>
         <a href="{{ url_for('auth.register') }}">Sign up</a>
@@ -30,11 +36,11 @@
   <header class="navbar">
     <div class="wrap">
       <a class="logo" href="{{ url_for('auth.index') }}">
-        <img class="logo-img" src="{{ url_for('static', filename=img ~ 'nestfolio-logo.png') }}" width="48" height="48" alt="">
+        <img src="{{ url_for('static', filename=img ~ 'logo-emblem.svg') }}" width="53" height="56" alt="">
         <span>Nestfolio</span>
       </a>
       <nav class="nav-links">
-        <a href="{{ url_for('customer.home') }}">Browse Projects</a>
+        <a href="{{ url_for('customer.home') }}" {% if nav == 'browse' %}aria-current="page"{% endif %}>Browse Projects</a>
         <a href="{{ url_for('customer.designers') }}" {% if nav == 'designers' %}aria-current="page"{% endif %}>Interior Designers</a>
         <a href="{{ url_for('auth.index') }}#categories">Categories</a>
         <a href="{{ url_for('auth.index') }}#how-it-works">How It Works</a>
@@ -58,7 +64,7 @@
       <div class="footer-columns">
         <div class="footer-brand">
           <div class="logo">
-            <img class="logo-img" src="{{ url_for('static', filename=img ~ 'nestfolio-logo.png') }}" width="44" height="44" alt="">
+            <img src="{{ url_for('static', filename=img ~ 'logo-emblem-footer.svg') }}" width="45" height="48" alt="">
             <span>Nestfolio</span>
           </div>
           <p>Connecting homeowners with verified interior designers.</p>
@@ -90,8 +96,13 @@
     </div>
   </footer>
 
-  {% for category, message in get_flashed_messages(with_categories=true) %}
-    <div class="toast" role="status">
+  {# Pages that show form errors next to the form set inline_errors, so they are not repeated here #}
+  {% for category, message in get_flashed_messages(with_categories=true)
+        if not (inline_errors|default(false) and category in ('error', 'password-error')) %}
+    <div class="toast{{ ' toast-error' if category in ('error', 'password-error') }}" role="status">
+      {% if category == 'success' %}
+        <img src="{{ url_for('static', filename=img ~ 'success.svg') }}" width="22" height="22" alt="">
+      {% endif %}
       <span>{{ message.text if message is mapping else message }}</span>
       {% if message is mapping and message.undo_idp %}
         <form method="post" action="{{ url_for('customer.save_favourite', idp_id=message.undo_idp) }}">
@@ -101,11 +112,45 @@
       {% endif %}
     </div>
   {% endfor %}
+
+  {% if session.user_id %}
+    {# C-03: confirm before logging out. Without JavaScript the Log out links still work directly. #}
+    <dialog class="modal modal-sm" id="logout-dialog" aria-labelledby="logout-title">
+      <div class="modal-header">
+        <span class="modal-icon"><img src="{{ url_for('static', filename=img ~ 'modal-logout.svg') }}" width="20" height="20" alt=""></span>
+        <div class="modal-titles">
+          <h2 id="logout-title">Log out of your account?</h2>
+          <p>You will need to log in again to see your favourites and profile.</p>
+        </div>
+        <form method="dialog"><button class="modal-close" aria-label="Close"><img src="{{ url_for('static', filename=img ~ 'modal-close.svg') }}" width="20" height="20" alt=""></button></form>
+      </div>
+      <form class="modal-actions" method="dialog">
+        <button class="btn btn-outline" type="submit">Cancel</button>
+        <a class="btn btn-primary" href="{{ url_for('auth.logout') }}">Log out</a>
+      </form>
+    </dialog>
+  {% endif %}
+
   <script>
     // Hide toasts after a few seconds
     setTimeout(function () {
       document.querySelectorAll('.toast').forEach(function (t) { t.classList.add('toast-hide'); });
     }, 6000);
+
+    // Open a <dialog> from any element with data-open="dialog-id"; Log out links open the confirm dialog
+    document.addEventListener('click', function (e) {
+      var opener = e.target.closest('[data-open], [data-logout]');
+      if (!opener) return;
+      var dialog = document.getElementById(opener.dataset.open || 'logout-dialog');
+      if (!dialog || !dialog.showModal) return;
+      e.preventDefault();
+      dialog.showModal();
+    });
+    // Clicking the dark backdrop closes a dialog
+    document.querySelectorAll('dialog.modal').forEach(function (d) {
+      d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
+    });
   </script>
+  {% block scripts %}{% endblock %}
 </body>
 </html>

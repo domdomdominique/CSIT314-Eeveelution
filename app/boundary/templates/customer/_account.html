@@ -1,0 +1,27 @@
+{# Left-hand menu on the customer's account pages (My profile, My favourites). #}
+{% macro sidebar(active) %}
+  {% set img = 'img/ui/' %}
+  {% set name = session.name or 'Customer' %}
+  <aside class="account-sidebar">
+    <div class="account-user">
+      <span class="initials initials-sm">{{ (name.split()|map('first')|join)[:2]|upper }}</span>
+      <div>
+        <p class="account-name">{{ name }}</p>
+        <p class="card-meta">Customer</p>
+      </div>
+    </div>
+    {% for key, label, icon, url in [
+      ('profile', 'My profile', 'menu-profile', url_for('customer.profile')),
+      ('favourites', 'My favourites', 'menu-favourites', url_for('customer.favourites')),
+      ('password', 'Change password', 'menu-password', url_for('customer.profile') ~ '#password'),
+    ] %}
+      <a class="account-link{{ ' active' if key == active }}" href="{{ url }}" {% if key == active %}aria-current="page"{% endif %}>
+        <img src="{{ url_for('static', filename=img ~ icon ~ '.svg') }}" width="18" height="18" alt="">{{ label }}
+      </a>
+    {% endfor %}
+    <div class="account-divider"></div>
+    <a class="account-link muted" href="{{ url_for('auth.logout') }}" data-logout>
+      <img src="{{ url_for('static', filename=img ~ 'menu-logout.svg') }}" width="18" height="18" alt="">Log out
+    </a>
+  </aside>
+{% endmacro %}

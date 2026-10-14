@@ -1,0 +1,101 @@
+{% extends "customer/layout.html" %}
+{% import "customer/_account.html" as sidebar with context %}
+{% set inline_errors = true %}
+{% block title %}My profile — Nestfolio{% endblock %}
+{% block content %}
+{% set img = 'img/ui/' %}
+{# After a failed save, show what the customer typed instead of the saved values #}
+{% set f = form or {
+  'first_name': account.first_name, 'last_name': account.last_name,
+  'email': account.email, 'phone': account.phone,
+} %}
+  <div class="account-page">
+    <div class="wrap account-layout">
+      {{ sidebar.sidebar('profile') }}
+
+      <div class="account-main">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">My profile</h1>
+            <p class="page-sub">Check and update your personal details.</p>
+          </div>
+          {% if updated %}
+            <p class="banner-success" role="status">
+              <img src="{{ url_for('static', filename=img ~ 'ok.svg') }}" width="18" height="18" alt="">Profile updated
+            </p>
+          {% endif %}
+        </div>
+
+        {# C-11 view + C-12 update #}
+        <form class="form-card" method="post" action="{{ url_for('customer.profile') }}">
+          <div class="form-card-header">
+            <h2>Personal details</h2>
+            <p>This is what designers see when you send an enquiry.</p>
+          </div>
+          <div class="profile-identity">
+            <span class="initials initials-md">{{ (account.name.split()|map('first')|join)[:2]|upper or '?' }}</span>
+            <div>
+              <p class="profile-identity-name">{{ account.name }}</p>
+              <p class="card-meta">Customer account</p>
+            </div>
+          </div>
+          {% for message in get_flashed_messages(category_filter=['error']) %}
+            <p class="form-error" role="alert">{{ message }}</p>
+          {% endfor %}
+          <div class="field-row">
+            <label class="field">
+              <span>First name</span>
+              <input name="first_name" value="{{ f.get('first_name', '') }}" autocomplete="given-name" required>
+            </label>
+            <label class="field">
+              <span>Last name</span>
+              <input name="last_name" value="{{ f.get('last_name', '') }}" autocomplete="family-name">
+            </label>
+          </div>
+          <div class="field-row">
+            <label class="field">
+              <span>Email address</span>
+              <input name="email" type="email" value="{{ f.get('email', '') }}" autocomplete="email" required>
+            </label>
+            <label class="field">
+              <span>Phone number</span>
+              <input name="phone" type="tel" value="{{ f.get('phone', '') }}" placeholder="+65 9123 4567" autocomplete="tel" required>
+            </label>
+          </div>
+          <div class="form-actions">
+            <a class="btn btn-outline" href="{{ url_for('customer.profile') }}">Cancel</a>
+            <button class="btn btn-primary" type="submit">Save changes</button>
+          </div>
+        </form>
+
+        {# C-14 change password #}
+        <form class="form-card" id="password" method="post" action="{{ url_for('customer.change_password') }}">
+          <div class="form-card-header">
+            <h2>Change password</h2>
+            <p>Use at least 8 characters with a mix of letters and numbers.</p>
+          </div>
+          {% for message in get_flashed_messages(category_filter=['password-error']) %}
+            <p class="form-error" role="alert">{{ message }}</p>
+          {% endfor %}
+          <div class="field-stack">
+            <label class="field">
+              <span>Current password</span>
+              <input name="current_password" type="password" autocomplete="current-password" required>
+            </label>
+            <label class="field">
+              <span>New password</span>
+              <input name="new_password" type="password" minlength="8" placeholder="Enter a new password" autocomplete="new-password" required>
+            </label>
+            <label class="field">
+              <span>Confirm new password</span>
+              <input name="confirm_password" type="password" minlength="8" placeholder="Re-enter the new password" autocomplete="new-password" required>
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Update password</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "customer/layout.html" %}
+{% import "customer/_cards.html" as cards with context %}
+{% set nav = 'browse' %}
+{% block title %}Browse projects — Nestfolio{% endblock %}
+
+{# This page's URL with some filters changed (url_for leaves out None and empty lists) #}
+{% macro browse_url(page=None, cats=categories, st=status) -%}
+  {{ url_for('customer.home', q=keyword or None, category=cats, status=st or None,
+             sort=None if sort == 'views' else sort, page=page) }}
+{%- endmacro %}
+
+{% block content %}
+{% set img = 'img/ui/' %}
+  {# One GET form; the filter and sort inputs below join it with form="browse-form"
+     (the cards' heart buttons are forms too, and forms cannot be nested) #}
+  <form method="get" action="{{ url_for('customer.home') }}" id="browse-form"></form>
+    <section class="browse-header">
+      <div class="wrap">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="{{ url_for('auth.index') }}">Home</a><span>/</span><span aria-current="page">Browse Projects</span>
+        </nav>
+        <h1 class="display-title">Browse interior design projects</h1>
+        {# C-04 search #}
+        <div class="search-bar search-bar-wide" role="search">
+          <img src="{{ url_for('static', filename=img ~ 'search.svg') }}" width="22" height="22" alt="">
+          <input name="q" value="{{ keyword }}" placeholder="Search projects, styles or designers…" aria-label="Search" form="browse-form">
+          <button class="btn btn-primary" type="submit" form="browse-form">Search</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="wrap browse-body">
+      {# C-05 filter by category #}
+      <aside class="filters">
+        <div class="filters-header">
+          <h2>Filters</h2>
+          {% if categories or status %}<a href="{{ browse_url(cats=[], st=None) }}">Clear all</a>{% endif %}
+        </div>
+        <fieldset>
+          <legend>CATEGORY</legend>
+          {% for name, count in category_counts %}
+            <label class="checkbox filter-option">
+              <input type="checkbox" form="browse-form" name="category" value="{{ name }}" {% if name in categories %}checked{% endif %}>
+              <span>{{ name }}</span>
+              <span class="filter-count">{{ count }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <div class="account-divider"></div>
+        <fieldset>
+          <legend>PROJECT STATUS</legend>
+          {% for key, label, count in status_counts %}
+            <label class="checkbox filter-option">
+              <input type="checkbox" form="browse-form" name="status" value="{{ key }}" {% if status == key %}checked{% endif %}>
+              <span>{{ label }}</span>
+              <span class="filter-count">{{ count }}</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <noscript><button class="btn btn-primary btn-block" type="submit" form="browse-form">Apply filters</button></noscript>
+      </aside>
+
+      <div class="results">
+        <div class="results-bar">
+          <div class="results-count">
+            <h2>
+              {{ '{:,}'.format(total) }} project{{ '' if total == 1 else 's' }} found{% if keyword %} for “{{ keyword }}”{% endif %}
+            </h2>
+            {% if categories or status %}
+              <div class="filter-chips">
+                {% for name in categories %}
+                  <a class="filter-chip" href="{{ browse_url(cats=categories|reject('equalto', name)|list) }}" aria-label="Remove {{ name }} filter">
+                    {{ name }}<img src="{{ url_for('static', filename=img ~ 'chip-close.svg') }}" width="12" height="12" alt="">
+                  </a>
+                {% endfor %}
+                {% if status %}
+                  <a class="filter-chip" href="{{ browse_url(st=None) }}" aria-label="Remove status filter">
+                    {{ 'Current projects' if status == 'current' else 'Past projects' }}<img src="{{ url_for('static', filename=img ~ 'chip-close.svg') }}" width="12" height="12" alt="">
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+          {# C-17 sort #}
+          <label class="fav-sort">
+            <span>Sort by:</span>
+            <select name="sort" form="browse-form">
+              {% for key, label in sorts.items() %}
+                <option value="{{ key }}" {% if key == sort %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <img src="{{ url_for('static', filename=img ~ 'fav-chevron.svg') }}" width="16" height="16" alt="">
+          </label>
+        </div>
+
+        {% if projects %}
+          <div class="results-grid">
+            {% for p in projects %}{{ cards.idp_card(p, saved_ids) }}{% endfor %}
+          </div>
+
+          {% if pages > 1 %}
+            <nav class="pagination" aria-label="Pages">
+              {% if page > 1 %}
+                <a class="page-btn" href="{{ browse_url(page=page - 1) }}" aria-label="Previous page"><img src="{{ url_for('static', filename=img ~ 'page-prev.svg') }}" width="18" height="18" alt=""></a>
+              {% endif %}
+              {% for n in range(1, pages + 1) %}
+                {% if n == 1 or n == pages or (n - page)|abs <= 1 %}
+                  <a class="page-btn" href="{{ browse_url(page=n) }}" {% if n == page %}aria-current="page"{% endif %}>{{ n }}</a>
+                {% elif n == 2 or n == pages - 1 %}
+                  <span class="page-btn page-gap">…</span>
+                {% endif %}
+              {% endfor %}
+              {% if page < pages %}
+                <a class="page-btn" href="{{ browse_url(page=page + 1) }}" aria-label="Next page"><img src="{{ url_for('static', filename=img ~ 'page-next.svg') }}" width="18" height="18" alt=""></a>
+              {% endif %}
+            </nav>
+          {% endif %}
+        {% else %}
+          <div class="empty-state">
+            <span class="empty-icon"><img src="{{ url_for('static', filename=img ~ 'empty-search.svg') }}" width="28" height="28" alt=""></span>
+            <h2>No projects match your search</h2>
+            <p>Try a different keyword or remove some filters.</p>
+            <a class="btn btn-outline" href="{{ url_for('customer.home') }}">Clear search and filters</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    // Filters and sort apply as soon as they change (the noscript button covers no-JS)
+    document.querySelectorAll('.filters input[form=browse-form], select[form=browse-form]').forEach(function (el) {
+      el.addEventListener('change', function () { el.form.submit(); });
+    });
+  </script>
+{% endblock %}
