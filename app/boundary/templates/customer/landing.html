@@ -1,0 +1,175 @@
+{% extends "customer/layout.html" %}
+{% import "customer/_cards.html" as cards with context %}
+{% block title %}Nestfolio — Find the right interior designer{% endblock %}
+{% block content %}
+{% set img = 'img/ui/' %}
+{% set search_url = url_for('customer.home') %}
+{% set category_colours = ['#efe6dc', '#e4dbd2', '#f4f0d6', '#e9e0d6', '#ddd3c8', '#f1ebdf'] %}
+
+    <section class="hero">
+      <img class="hero-decor hero-decor-1" src="{{ url_for('static', filename=img ~ 'decor-1.svg') }}" width="360" height="360" alt="">
+      <img class="hero-decor hero-decor-2" src="{{ url_for('static', filename=img ~ 'decor-2.svg') }}" width="260" height="260" alt="">
+      <img class="hero-decor hero-decor-3" src="{{ url_for('static', filename=img ~ 'decor-3.svg') }}" width="90" height="90" alt="">
+      <div class="wrap">
+        <h1>Find the right interior designer<br>for your home</h1>
+        <p class="hero-sub">Browse real renovation projects from verified designers. Filter by style, save the ones you love,<br>and connect with the team behind them.</p>
+
+        <form class="search-bar" method="get" action="{{ search_url }}" role="search">
+          <img src="{{ url_for('static', filename=img ~ 'search.svg') }}" width="22" height="22" alt="">
+          <input name="q" placeholder="Search projects, styles or designers…" aria-label="Search">
+          <span class="search-divider"></span>
+          <label class="search-category">
+            <select name="category" aria-label="Category">
+              <option value="">All categories</option>
+              {% for name, count in categories %}
+                <option value="{{ name }}">{{ name }}</option>
+              {% endfor %}
+            </select>
+            <img src="{{ url_for('static', filename=img ~ 'chevron.svg') }}" width="18" height="18" alt="">
+          </label>
+          <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+
+        <div class="popular">
+          <span class="popular-label">Popular:</span>
+          {% for term in ['Scandinavian', 'HDB', 'Kitchen', 'Minimalist', 'Condo'] %}
+            <a class="chip" href="{{ url_for('customer.home', q=term) }}">{{ term }}</a>
+          {% endfor %}
+        </div>
+
+        <p class="hero-stats">{{ '{:,}'.format(customer_count) }} homeowners have joined · {{ '{:,}'.format(designer_count) }} verified designers</p>
+      </div>
+    </section>
+
+    <section class="categories" id="categories">
+      <div class="wrap">
+        <div class="section-header">
+          <div class="titles">
+            <span class="eyebrow">EXPLORE</span>
+            <h2>Browse by category</h2>
+          </div>
+          <a class="see-all" href="{{ search_url }}">See all categories →</a>
+        </div>
+        <div class="category-row">
+          {% for name, count in categories %}
+            <a class="category-card" href="{{ url_for('customer.home', q=name) }}">
+              <div class="photo" style="background: {{ category_colours[loop.index0 % category_colours|length] }}">
+                <img src="{{ url_for('static', filename=img ~ 'category-image.svg') }}" width="29" height="29" alt="">
+              </div>
+              <div>
+                <p class="card-title">{{ name }}</p>
+                <p class="card-meta">{{ count }} project{{ '' if count == 1 else 's' }}</p>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="projects" id="projects">
+      <div class="wrap">
+        <div class="section-header">
+          <div class="titles">
+            <span class="eyebrow">TRENDING NOW</span>
+            <h2>Popular interior design projects</h2>
+          </div>
+          <nav class="sort-tabs" aria-label="Sort projects">
+            <a class="sort-tab" href="{{ url_for('auth.index') }}#projects" {% if sort == 'views' %}aria-current="true"{% endif %}>Most viewed</a>
+            <a class="sort-tab" href="{{ url_for('auth.index', sort='newest') }}#projects" {% if sort == 'newest' %}aria-current="true"{% endif %}>Newest</a>
+          </nav>
+        </div>
+        {% if popular %}
+          <div class="project-row">
+            {% for p in popular %}{{ cards.idp_card(p, saved_ids) }}{% endfor %}
+          </div>
+        {% else %}
+          <p class="empty">No projects have been posted yet.</p>
+        {% endif %}
+        <div class="more">
+          <a class="btn btn-outline" href="{{ search_url }}">Browse all projects</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-cream why">
+      <div class="wrap">
+        <div class="titles">
+          <span class="eyebrow">WHY NESTFOLIO</span>
+          <h2>Renovating starts with the right match</h2>
+        </div>
+        <div class="benefits">
+          {% for icon, title, text in [
+            ('benefit-verified', 'Verified designers', 'Every designer is reviewed by our admin team before they can post projects.'),
+            ('benefit-portfolio', 'Real project portfolios', 'See past and current work, sorted by room type and style.'),
+            ('benefit-favourites', 'Save your favourites', 'Shortlist projects you love and come back to them any time.'),
+            ('benefit-enquiries', 'Easy enquiries', 'Send a message to a designer straight from their project page.'),
+          ] %}
+            <div class="benefit">
+              <div class="icon-bubble">
+                <img src="{{ url_for('static', filename=img ~ icon ~ '.svg') }}" width="44" height="44" alt="">
+              </div>
+              <h3>{{ title }}</h3>
+              <p>{{ text }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="designers">
+      <div class="wrap">
+        <div class="section-header">
+          <div class="titles">
+            <span class="eyebrow">MEET THE PROS</span>
+            <h2>Featured interior designers</h2>
+          </div>
+          <a class="see-all" href="{{ url_for('customer.designers') }}">Browse all designers →</a>
+        </div>
+        {% if featured %}
+          <div class="designer-row">
+            {% for f in featured %}{{ cards.designer_card(f.designer, f.project_count) }}{% endfor %}
+          </div>
+        {% else %}
+          <p class="empty">No designers to feature yet.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="section section-grey how" id="how-it-works">
+      <div class="wrap">
+        <div class="titles titles-center">
+          <span class="eyebrow">HOW IT WORKS</span>
+          <h2>Three simple steps</h2>
+        </div>
+        <div class="steps">
+          {% for title, text in [
+            ('Search & filter', 'Look up projects by keyword or pick a category like Kitchen or Bedroom.'),
+            ('Save your favourites', 'Tap the heart to shortlist projects. Find them later in My Favourites.'),
+            ('Meet the designer', 'Open the designer’s profile, view their other work and get in touch.'),
+          ] %}
+            <div class="step">
+              <span class="step-number">{{ loop.index }}</span>
+              <h3>{{ title }}</h3>
+              <p>{{ text }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        {% if not session.user_id %}
+          <div class="cta">
+            <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Create a free account</a>
+            <a class="btn btn-outline" href="{{ url_for('auth.login') }}">Log in</a>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="designer-cta">
+      <div class="wrap">
+        <div class="designer-cta-text">
+          <h2>Are you an interior designer?</h2>
+          <p>Register your company, showcase your projects and see how many homeowners view and save your work.</p>
+        </div>
+        <a class="btn btn-white" href="{{ url_for('auth.apply_designer') }}">Join as a designer</a>
+      </div>
+    </section>
+{% endblock %}

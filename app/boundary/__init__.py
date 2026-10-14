@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import abort, redirect, session, url_for
+from flask import abort, redirect, request, session, url_for
 
 
 def role_required(role):
@@ -10,7 +10,8 @@ def role_required(role):
         @wraps(view)
         def wrapped(*args, **kwargs):
             if "user_id" not in session:
-                return redirect(url_for("auth.login"))
+                # Come back to this page after logging in
+                return redirect(url_for("auth.login", next=request.full_path.rstrip("?")))
             if session.get("role") != role:
                 abort(403)
             return view(*args, **kwargs)
@@ -18,3 +19,10 @@ def role_required(role):
         return wrapped
 
     return decorator
+
+
+def safe_next(url):
+    """Return url only if it is a path on this site (blocks open redirects)."""
+    if url and url.startswith("/") and not url.startswith(("//", "/\\")):
+        return url
+    return None

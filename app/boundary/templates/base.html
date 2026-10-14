@@ -1,19 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Eeveelution</title>
+  <title>Nestfolio</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/ui/nestfolio-logo.png') }}">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/pico-theme.css') }}">
 </head>
 <body>
   <main class="container">
     <nav>
-      <ul><li><strong>Eeveelution</strong></li></ul>
+      <ul><li><a href="{{ url_for('auth.index') }}" style="display:flex;align-items:center;gap:10px;text-decoration:none"><img src="{{ url_for('static', filename='img/ui/nestfolio-logo.png') }}" width="40" height="40" alt="" style="border-radius:8px"><strong>Nestfolio</strong></a></li></ul>
       {% if session.user_id %}<ul><li><a href="{{ url_for('auth.logout') }}">Log out</a></li></ul>{% endif %}
     </nav>
     {% for message in get_flashed_messages() %}<p role="alert">{{ message }}</p>{% endfor %}
     {% block content %}{% endblock %}
+    
+    <div class="footer">
+      <p>&copy; 2026 Nestfolio, Eeveelution. All rights reserved.</p>
+    </div>
   </main>
 </body>
 </html>

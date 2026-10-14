@@ -1,0 +1,83 @@
+{% extends "customer/layout.html" %}
+{% import "customer/_cards.html" as cards with context %}
+{% set nav = 'favourites' %}
+{% block title %}My favourites — Nestfolio{% endblock %}
+{% block content %}
+{% set img = 'img/ui/' %}
+{% set name = session.name or 'Customer' %}
+  <div class="account-page">
+    <div class="wrap account-layout">
+      <aside class="account-sidebar">
+        <div class="account-user">
+          <span class="initials initials-sm">{{ (name.split()|map('first')|join)[:2]|upper }}</span>
+          <div>
+            <p class="account-name">{{ name }}</p>
+            <p class="card-meta">Customer</p>
+          </div>
+        </div>
+        <span class="account-link" aria-disabled="true" title="Coming soon">
+          <img src="{{ url_for('static', filename=img ~ 'menu-profile.svg') }}" width="18" height="18" alt="">My profile
+        </span>
+        <a class="account-link active" href="{{ url_for('customer.favourites') }}" aria-current="page">
+          <img src="{{ url_for('static', filename=img ~ 'menu-favourites.svg') }}" width="18" height="18" alt="">My favourites
+        </a>
+        <span class="account-link" aria-disabled="true" title="Coming soon">
+          <img src="{{ url_for('static', filename=img ~ 'menu-password.svg') }}" width="18" height="18" alt="">Change password
+        </span>
+        <div class="account-divider"></div>
+        <a class="account-link muted" href="{{ url_for('auth.logout') }}">
+          <img src="{{ url_for('static', filename=img ~ 'menu-logout.svg') }}" width="18" height="18" alt="">Log out
+        </a>
+      </aside>
+
+      <div class="account-main">
+        <div>
+          <h1 class="page-title">My favourites</h1>
+          <p class="page-sub">{{ total }} saved project{{ '' if total == 1 else 's' }}</p>
+        </div>
+
+        <form class="fav-toolbar" method="get" role="search">
+          <label class="fav-search">
+            <img src="{{ url_for('static', filename=img ~ 'fav-search.svg') }}" width="18" height="18" alt="">
+            <input name="q" value="{{ keyword }}" placeholder="Search my favourites…" aria-label="Search my favourites">
+          </label>
+          <label class="fav-sort">
+            <span>Sort by:</span>
+            <select name="sort" onchange="this.form.submit()">
+              {% for key, label in sorts.items() %}
+                <option value="{{ key }}" {% if key == sort %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <img src="{{ url_for('static', filename=img ~ 'fav-chevron.svg') }}" width="16" height="16" alt="">
+          </label>
+          <noscript><button class="btn btn-primary" type="submit">Apply</button></noscript>
+        </form>
+
+        {% if projects %}
+          {% if keyword %}
+            <p class="page-sub">{{ projects|length }} of {{ total }} saved projects match “{{ keyword }}” · <a class="see-all" href="{{ url_for('customer.favourites', sort=sort) }}">Clear search</a></p>
+          {% endif %}
+          <div class="fav-grid">
+            {% for p in projects %}{{ cards.idp_card(p, [p.id]) }}{% endfor %}
+          </div>
+          <p class="fav-hint">
+            <img src="{{ url_for('static', filename=img ~ 'trash.svg') }}" width="16" height="16" alt="">
+            Tap the filled heart on a project to remove it from your favourites.
+          </p>
+        {% elif keyword %}
+          <div class="empty-state">
+            <h2>No favourites match “{{ keyword }}”</h2>
+            <p>Try another keyword, or clear the search to see all {{ total }} saved projects.</p>
+            <a class="btn btn-outline" href="{{ url_for('customer.favourites', sort=sort) }}">Clear search</a>
+          </div>
+        {% else %}
+          <div class="empty-state">
+            <h2>No favourites yet</h2>
+            <p>Tap the heart on any project to save it here.</p>
+            <a class="btn btn-primary" href="{{ url_for('auth.index') }}#projects">Browse projects</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nestfolio{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/ui/nestfolio-logo.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+</head>
+<body>
+{% set img = 'img/ui/' %}
+{% set nav = nav|default('') %}
+
+  <div class="topbar">
+    <div class="wrap">
+      <a href="{{ url_for('auth.apply_designer') }}">For Interior Designers</a>
+      {% if session.user_id %}
+        {% if session.name %}<span>Hi, {{ session.name.split()[0] }}</span>{% endif %}
+        <a href="{{ url_for('auth.logout') }}">Log out</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Log in</a>
+        <a href="{{ url_for('auth.register') }}">Sign up</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <header class="navbar">
+    <div class="wrap">
+      <a class="logo" href="{{ url_for('auth.index') }}">
+        <img class="logo-img" src="{{ url_for('static', filename=img ~ 'nestfolio-logo.png') }}" width="48" height="48" alt="">
+        <span>Nestfolio</span>
+      </a>
+      <nav class="nav-links">
+        <a href="{{ url_for('customer.home') }}">Browse Projects</a>
+        <a href="{{ url_for('customer.designers') }}" {% if nav == 'designers' %}aria-current="page"{% endif %}>Interior Designers</a>
+        <a href="{{ url_for('auth.index') }}#categories">Categories</a>
+        <a href="{{ url_for('auth.index') }}#how-it-works">How It Works</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="nav-fav" href="{{ url_for('customer.favourites') }}" {% if nav == 'favourites' %}aria-current="page"{% endif %}>
+          <img src="{{ url_for('static', filename=img ~ ('nav-heart-active.svg' if nav == 'favourites' else 'nav-heart.svg')) }}" width="20" height="20" alt="">
+          <span>My Favourites</span>
+        </a>
+        <a class="btn btn-primary" href="{{ url_for('customer.designers') }}">Find a Designer</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-columns">
+        <div class="footer-brand">
+          <div class="logo">
+            <img class="logo-img" src="{{ url_for('static', filename=img ~ 'nestfolio-logo.png') }}" width="44" height="44" alt="">
+            <span>Nestfolio</span>
+          </div>
+          <p>Connecting homeowners with verified interior designers.</p>
+        </div>
+        <div class="footer-col">
+          <h3>For homeowners</h3>
+          <a href="{{ url_for('customer.home') }}">Browse projects</a>
+          <a href="{{ url_for('auth.index') }}#categories">Categories</a>
+          <a href="{{ url_for('customer.favourites') }}">My favourites</a>
+          <a href="{{ url_for('auth.login') }}">Log in / Sign up</a>
+        </div>
+        <div class="footer-col">
+          <h3>For designers</h3>
+          <a href="{{ url_for('auth.apply_designer') }}">Join as a designer</a>
+          <a href="{{ url_for('auth.login') }}">Designer log in</a>
+          <a href="{{ url_for('designer.home') }}">Manage portfolio</a>
+          <a href="{{ url_for('designer.home') }}">Project insights</a>
+        </div>
+        <div class="footer-col">
+          <h3>Company</h3>
+          <a href="#">About us</a>
+          <a href="#">Contact</a>
+          <a href="#">Terms of use</a>
+          <a href="#">Privacy policy</a>
+        </div>
+      </div>
+      <div class="footer-divider"></div>
+      <p class="footer-copy">© 2026 Nestfolio. All rights reserved.</p>
+    </div>
+  </footer>
+
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="toast" role="status">
+      <span>{{ message.text if message is mapping else message }}</span>
+      {% if message is mapping and message.undo_idp %}
+        <form method="post" action="{{ url_for('customer.save_favourite', idp_id=message.undo_idp) }}">
+          <input type="hidden" name="next" value="{{ request.full_path.rstrip('?') }}">
+          <button type="submit">Undo</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endfor %}
+  <script>
+    // Hide toasts after a few seconds
+    setTimeout(function () {
+      document.querySelectorAll('.toast').forEach(function (t) { t.classList.add('toast-hide'); });
+    }, 6000);
+  </script>
+</body>
+</html>

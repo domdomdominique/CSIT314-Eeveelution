@@ -1,0 +1,49 @@
+/* Neutral Elegance palette for the Pico-based pages (base.html). Load after pico.min.css. */
+
+:root[data-theme="light"] {
+  --pico-font-family-sans-serif: "Roboto", system-ui, sans-serif;
+  --pico-font-family: "Roboto", system-ui, sans-serif;
+  --pico-background-color: #ffffff;
+  --pico-color: #4f4237;
+  --pico-muted-color: #7d6a5a;
+  --pico-muted-border-color: #eae3db;
+  --pico-h1-color: #664930;
+  --pico-h2-color: #664930;
+  --pico-h3-color: #664930;
+  --pico-h4-color: #664930;
+  --pico-h5-color: #664930;
+  --pico-h6-color: #664930;
+
+  --pico-primary: #664930;
+  --pico-primary-background: #664930;
+  --pico-primary-border: #664930;
+  --pico-primary-underline: rgba(102, 73, 48, 0.5);
+  --pico-primary-hover: #4a3524;
+  --pico-primary-hover-background: #4a3524;
+  --pico-primary-hover-border: #4a3524;
+  --pico-primary-hover-underline: #4a3524;
+  --pico-primary-focus: rgba(153, 126, 103, 0.35);
+  --pico-primary-inverse: #fffdbb;
+
+  --pico-form-element-border-color: #ccbeb1;
+  --pico-form-element-focus-color: #997e67;
+  --pico-table-border-color: #eae3db;
+}
+
+body { background: #ffffff; }
+
+/* Top bar strip, matching the customer pages */
+body > main.container > nav:first-child {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #eae3db;
+}
+body > main.container > nav:first-child strong { color: #664930; }
+
+[role="alert"] {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #fffdbb;
+  color: #664930;
+}
+
+thead th { background: #f7f3ee; color: #664930; }

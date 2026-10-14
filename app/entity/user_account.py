@@ -31,6 +31,36 @@ class UserAccount(db.Model):
         return account
 
     @classmethod
+    def get(cls, account_id):
+        return db.session.get(cls, account_id)
+
+    @classmethod
+    def count_by_role(cls, role):
+        return cls.query.filter_by(role=role, is_suspended=False).count()
+
+    # --- Designer public profile -------------------------------------------
+    # `designer_application` is the approved DesignerApplication that created
+    # this account (set up as a backref in designer_application.py). Designers
+    # created without an application fall back to their personal name.
+
+    @property
+    def company(self):
+        return getattr(self, "designer_application", None)
+
+    @property
+    def display_name(self):
+        return self.company.company_name if self.company else self.name
+
+    @property
+    def initials(self):
+        words = [w for w in self.display_name.replace("&", " ").split() if w[0].isalnum()]
+        return "".join(w[0] for w in words[:2]).upper() or "?"
+
+    @property
+    def designer_since(self):
+        return self.company.reviewed_at.year if self.company and self.company.reviewed_at else None
+
+    @classmethod
     def email_exists(cls, email):
         return cls.query.filter_by(email=email).first() is not None
 

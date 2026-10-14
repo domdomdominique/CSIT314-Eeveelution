@@ -1,0 +1,153 @@
+{% extends "customer/layout.html" %}
+{% import "customer/_cards.html" as cards with context %}
+{% set nav = 'designers' %}
+{% block title %}{{ designer.display_name }} — Nestfolio{% endblock %}
+{% block content %}
+{% set img = 'img/ui/' %}
+{% set company = designer.company %}
+{% set shown = projects if show_all else projects[:4] %}
+  <div class="cover">
+    <img src="{{ url_for('static', filename=img ~ 'cover-image.svg') }}" width="64" height="64" alt="">
+  </div>
+
+  <div class="wrap profile-header">
+    <div class="profile-logo"><span class="initials initials-lg">{{ designer.initials }}</span></div>
+    <div class="profile-info">
+      <h1 class="profile-name">
+        {{ designer.display_name }}
+        <img src="{{ url_for('static', filename=img ~ 'verified.svg') }}" width="26" height="26" alt="Verified">
+      </h1>
+      <div class="badges">
+        <span class="badge badge-blue">Verified designer</span>
+        {% if designer.designer_since %}<span class="badge">Since {{ designer.designer_since }}</span>{% endif %}
+        <span class="badge">{{ total }} project{{ '' if total == 1 else 's' }}</span>
+        {% if company and company.experience_years %}<span class="badge">{{ company.experience_years }} yrs experience</span>{% endif %}
+      </div>
+    </div>
+    <div class="profile-actions">
+      <button class="btn btn-share" type="button" id="share-btn">
+        <img src="{{ url_for('static', filename=img ~ 'share.svg') }}" width="18" height="18" alt="">
+        <span>Share</span>
+      </button>
+      <a class="btn btn-primary" href="#contact">Send enquiry</a>
+    </div>
+  </div>
+
+  <nav class="profile-tabs">
+    <div class="wrap">
+      <a href="#about" aria-current="true">About</a>
+      <a href="#projects">Projects ({{ total }})</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </nav>
+
+  <div class="wrap profile-body">
+    <div class="profile-left">
+      <section id="about" class="profile-about">
+        <h2>About the company</h2>
+        <p>{{ company.description if company and company.description else designer.display_name ~ ' is a verified interior designer on Nestfolio.' }}</p>
+      </section>
+
+      <section class="company-details">
+        <h2>Company details</h2>
+        <dl>
+          <div><dt>Company name</dt><dd>{{ designer.display_name }}</dd></div>
+          {% if company %}
+            <div><dt>UEN</dt><dd>{{ company.uen }}</dd></div>
+            <div><dt>Experience</dt><dd>{{ company.experience_years }} year{{ '' if company.experience_years == 1 else 's' }}</dd></div>
+          {% endif %}
+          <div><dt>Designer</dt><dd>{{ designer.name }}</dd></div>
+          <div><dt>Email</dt><dd><a href="mailto:{{ designer.email }}">{{ designer.email }}</a></dd></div>
+          {% if company and company.portfolio_url %}
+            <div><dt>Website</dt><dd><a href="{{ company.portfolio_url }}" rel="noopener" target="_blank">{{ company.portfolio_url.split('//')[-1] }}</a></dd></div>
+          {% endif %}
+          {% if category_share %}
+            <div><dt>Specialities</dt><dd>{{ category_share[:3]|map('first')|join(', ') }}</dd></div>
+          {% endif %}
+        </dl>
+      </section>
+
+      <section id="projects" class="profile-projects">
+        <div class="profile-projects-header">
+          <h2>Projects by {{ designer.display_name }}</h2>
+          <nav class="sort-tabs" aria-label="Filter projects">
+            {% for key, label, count in [(None, 'All', total), ('current', 'Current', current), ('past', 'Past', past)] %}
+              <a class="sort-tab" href="{{ url_for('customer.designer_profile', designer_id=designer.id, status=key) }}#projects"
+                 {% if status == key %}aria-current="true"{% endif %}>{{ label }} ({{ count }})</a>
+            {% endfor %}
+          </nav>
+        </div>
+        {% if shown %}
+          <div class="profile-grid">
+            {% for p in shown %}{{ cards.idp_card(p, saved_ids) }}{% endfor %}
+          </div>
+          {% if projects|length > shown|length %}
+            <div class="more">
+              <a class="btn btn-outline" href="{{ url_for('customer.designer_profile', designer_id=designer.id, status=status, all=1) }}#projects">Show all {{ projects|length }} projects</a>
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="empty">No {{ status ~ ' ' if status }}projects yet.</p>
+        {% endif %}
+      </section>
+    </div>
+
+    <aside class="profile-right">
+      <section class="side-card">
+        <h2>At a glance</h2>
+        <div class="glance">
+          <div><strong>{{ total }}</strong><span>Projects</span></div>
+          <div><strong>{{ current }}</strong><span>Current</span></div>
+          <div><strong>{{ '%.1fk'|format(views / 1000) if views >= 1000 else views }}</strong><span>Views</span></div>
+        </div>
+        {% if category_share %}
+          <h3>Project types</h3>
+          {% for name, percent in category_share[:3] %}
+            <div class="type-bar">
+              <div class="type-label"><span>{{ name }}</span><strong>{{ percent }}%</strong></div>
+              <div class="type-track"><div style="width: {{ percent }}%"></div></div>
+            </div>
+          {% endfor %}
+          <h3>Categories</h3>
+          <div class="tags">
+            {% for name, percent in category_share %}<span class="tag">{{ name }}</span>{% endfor %}
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="side-card" id="contact">
+        <h2 class="side-card-title">
+          <img src="{{ url_for('static', filename=img ~ 'chat.svg') }}" width="20" height="20" alt="">
+          Like this design?
+        </h2>
+        <p class="designer-about">Send {{ designer.display_name }} a message to start a renovation discussion.</p>
+        <form class="enquiry-form" id="enquiry-form" data-email="{{ designer.email }}" data-company="{{ designer.display_name }}">
+          <input name="name" placeholder="Your name" aria-label="Your name" required value="{{ session.name or '' }}">
+          <input name="contact" placeholder="Email or phone" aria-label="Email or phone" required>
+          <textarea name="message" placeholder="Tell us about your home and budget…" aria-label="Message" rows="4" required></textarea>
+          <button class="btn btn-primary" type="submit">Send enquiry</button>
+        </form>
+      </section>
+    </aside>
+  </div>
+
+  <script>
+    // Share: copy this profile's link
+    document.getElementById('share-btn').addEventListener('click', function () {
+      var label = this.querySelector('span');
+      navigator.clipboard.writeText(location.href.split('#')[0]).then(function () {
+        label.textContent = 'Link copied';
+        setTimeout(function () { label.textContent = 'Share'; }, 2000);
+      });
+    });
+    // Enquiry: open the customer's email app with the message filled in
+    document.getElementById('enquiry-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = this;
+      var body = f.message.value + '\n\n— ' + f.name.value + ' (' + f.contact.value + ')';
+      location.href = 'mailto:' + f.dataset.email +
+        '?subject=' + encodeURIComponent('Renovation enquiry for ' + f.dataset.company + ' via Nestfolio') +
+        '&body=' + encodeURIComponent(body);
+    });
+  </script>
+{% endblock %}

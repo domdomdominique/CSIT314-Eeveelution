@@ -1,0 +1,21 @@
+{% extends "customer/layout.html" %}
+{% import "customer/_cards.html" as cards with context %}
+{% set nav = 'designers' %}
+{% block title %}Interior designers — Nestfolio{% endblock %}
+{% block content %}
+  <section class="section">
+    <div class="wrap">
+      <div class="titles">
+        <span class="eyebrow">MEET THE PROS</span>
+        <h2>Interior designers</h2>
+      </div>
+      {% if designers %}
+        <div class="designer-row">
+          {% for d in designers %}{{ cards.designer_card(d.designer, d.project_count) }}{% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">No designers have posted projects yet.</p>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

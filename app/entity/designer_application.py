@@ -33,6 +33,12 @@ class DesignerApplication(db.Model):
     reviewed_by = db.Column(db.Integer, db.ForeignKey("user_account.id"))
     account_id = db.Column(db.Integer, db.ForeignKey("user_account.id"))
 
+    # Lets a designer's UserAccount reach its company details (account.designer_application)
+    account = db.relationship(
+        "UserAccount", foreign_keys=[account_id],
+        backref=db.backref("designer_application", uselist=False),
+    )
+
     @classmethod
     def submit(cls, name, email, phone, password, company_name, uen,
                portfolio_url="", experience_years=0, description=""):

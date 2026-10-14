@@ -1,8 +1,10 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
+from app.boundary import safe_next
 from app.control.apply_designer_controller import ApplyDesignerController
 from app.control.login_controller import LoginController
 from app.control.register_controller import RegisterController
+from app.control.view_landing_page_controller import ViewLandingPageController
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -23,7 +25,10 @@ APPLICATION_MESSAGES = {
 
 @auth_bp.route("/")
 def index():
-    return redirect(url_for("auth.login"))
+    """Boundary: LandingPage (public customer landing page)."""
+    customer_id = session["user_id"] if session.get("role") == "customer" else None
+    page = ViewLandingPageController().view(request.args.get("sort"), customer_id)
+    return render_template("customer/landing.html", **page)
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
@@ -35,7 +40,9 @@ def login():
         if account:
             session["user_id"] = account.id
             session["role"] = account.role
-            return redirect(url_for(HOME_BY_ROLE[account.role]))
+            session["name"] = account.name
+            next_url = safe_next(request.args.get("next"))
+            return redirect(next_url or url_for(HOME_BY_ROLE[account.role]))
         status = controller.application_status(request.form["email"])
         flash(APPLICATION_MESSAGES.get(status, "Invalid email or password."))
     return render_template("auth/login.html")
@@ -83,4 +90,4 @@ def apply_designer():
 @auth_bp.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.index"))
